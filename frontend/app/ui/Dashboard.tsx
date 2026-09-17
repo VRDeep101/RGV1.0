@@ -80,12 +80,14 @@ return <div className="min-h-screen bg-surface">
     </span>
   </div>
   <div className="grid sm:grid-cols-4 gap-3 mt-4">
-    {[
-      ["Hazard", riskResult.hazard.hazard_score],
-      ["Exposure", riskResult.exposure.exposure_score],
-      ["Vulnerability", riskResult.vulnerability.vulnerability_score],
-      ["Overall risk", riskResult.risk.risk_score],
-    ].map(([label, value]: [string, number]) => (
+    {(
+  [
+    ["Hazard", riskResult.hazard.hazard_score],
+    ["Exposure", riskResult.exposure.exposure_score],
+    ["Vulnerability", riskResult.vulnerability.vulnerability_score],
+    ["Overall risk", riskResult.risk.risk_score],
+  ] as [string, number][]
+).map(([label, value]) => (
       <div key={label} className="p-3 rounded-xl bg-surface">
         <div className="text-[10px] text-muted">{label}</div>
         <div className="font-bold mt-1">{value.toFixed(3)}</div>
