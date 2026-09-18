@@ -1,8 +1,14 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { AuthUser, getToken, saveToken, clearToken, fetchMe } from "./auth";
+import { useRouter } from "next/navigation";
+import {
+  AuthUser,
+  getToken,
+  saveToken,
+  clearToken,
+  fetchMe,
+} from "./auth";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -13,41 +19,30 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const PUBLIC_PATHS = ["/login", "/register"];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     const token = getToken();
 
     if (!token) {
+      // MVP demo: authentication optional
       setLoading(false);
-      if (!PUBLIC_PATHS.includes(pathname)) {
-        router.replace("/login");
-      }
       return;
     }
 
     fetchMe(token)
       .then((me) => {
         setUser(me);
-        if (PUBLIC_PATHS.includes(pathname)) {
-          router.replace("/");
-        }
       })
       .catch(() => {
         clearToken();
-        if (!PUBLIC_PATHS.includes(pathname)) {
-          router.replace("/login");
-        }
+        setUser(null);
       })
       .finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, []);
 
   function setSession(token: string, authUser: AuthUser) {
     saveToken(token);
@@ -58,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     clearToken();
     setUser(null);
-    router.replace("/login");
+    router.replace("/");
   }
 
   return (
@@ -70,8 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
+
   if (!ctx) {
     throw new Error("useAuth must be used within an AuthProvider");
   }
+
   return ctx;
 }
